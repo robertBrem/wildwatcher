@@ -20,10 +20,19 @@ public class MonitorEndpoint {
 	MonitoringService service;
 
 	@GET
+	@Path("{ip}")
+	public String getServerStatus(@PathParam("ip") String ip) {
+		return getServerStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT);
+	}
+
+	@GET
 	@Path("{ip}:{port}")
 	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port) {
 		InetAddress host = service.getHost(ip);
-		int parsedPort = Integer.parseInt(port);
+		int parsedPort = 9990;
+		if (port != null && !port.isEmpty()) {
+			parsedPort = Integer.parseInt(port);
+		}
 		String username = "admin";
 		String password = "admin";
 		String securityRealmName = "ManagementRealm";

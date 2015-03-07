@@ -24,6 +24,8 @@ import org.jboss.threads.AsyncFuture;
 @Stateless
 public class MonitoringService {
 
+	public static String DEFAULT_MANAGEMENT_PORT = "9990";
+
 	public ModelControllerClient createClient(final InetAddress host, final int port, final String username, final String password,
 			final String securityRealmName) {
 
@@ -65,7 +67,7 @@ public class MonitoringService {
 		InetAddress host = null;
 		try {
 			host = InetAddress.getByAddress(ipAddress);
-		} catch (UnknownHostException e1) {
+		} catch (UnknownHostException e) {
 			throw new IllegalArgumentException(ipAddress + " is not a correct ip address!");
 		}
 		return host;
@@ -83,8 +85,8 @@ public class MonitoringService {
 		ModelNode returnVal;
 		try {
 			returnVal = resultFuture.get(60, TimeUnit.SECONDS);
-		} catch (InterruptedException | ExecutionException | TimeoutException e1) {
-			return e1.getMessage();
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			return e.getMessage();
 		}
 		serverStateResult = returnVal.get("result").toString();
 		return serverStateResult;
