@@ -1,4 +1,4 @@
-package ch.openpixx.monitoring;
+package ch.wildwatcher.monitoring;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

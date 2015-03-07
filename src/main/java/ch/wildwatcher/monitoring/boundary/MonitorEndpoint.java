@@ -1,4 +1,4 @@
-package ch.openpixx.monitoring.boundary;
+package ch.wildwatcher.monitoring.boundary;
 
 import java.net.InetAddress;
 
@@ -12,7 +12,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 
-import ch.openpixx.monitoring.control.MonitoringService;
+import ch.wildwatcher.monitoring.control.MonitoringService;
 
 @Path("servers")
 public class MonitorEndpoint {

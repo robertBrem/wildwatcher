@@ -1,4 +1,4 @@
-package ch.openpixx.monitoring.control;
+package ch.wildwatcher.monitoring.control;
 
 import java.io.IOException;
 import java.net.InetAddress;
