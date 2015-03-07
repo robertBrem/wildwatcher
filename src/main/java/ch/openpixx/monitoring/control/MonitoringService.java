@@ -27,10 +27,19 @@ public class MonitoringService {
 	public static String DEFAULT_MANAGEMENT_PORT = "9990";
 	public static String DEFAULT_USERNAME = "admin";
 	public static String DEFAULT_PASSWORD = "admin";
-	public static String DEFAULT_REALM = "ManagementRealm";
 
-	public ModelControllerClient createClient(final InetAddress host, final int port, final String username, final String password,
-			final String securityRealmName) {
+	public ModelControllerClient createClient(InetAddress host, int port, String username, String password, String securityRealmName) {
+
+		if (username == null || username.isEmpty()) {
+			username = MonitoringService.DEFAULT_USERNAME;
+		}
+		if (password == null || password.isEmpty()) {
+			password = MonitoringService.DEFAULT_PASSWORD;
+		}
+
+		final String usernameFinal = username;
+		final String passwordFinal = password;
+		final String securityRealmNameFinal = securityRealmName;
 
 		final CallbackHandler callbackHandler = new CallbackHandler() {
 
@@ -38,13 +47,17 @@ public class MonitoringService {
 				for (Callback current : callbacks) {
 					if (current instanceof NameCallback) {
 						NameCallback ncb = (NameCallback) current;
-						ncb.setName(username);
+						ncb.setName(usernameFinal);
 					} else if (current instanceof PasswordCallback) {
 						PasswordCallback pcb = (PasswordCallback) current;
-						pcb.setPassword(password.toCharArray());
+						pcb.setPassword(passwordFinal.toCharArray());
 					} else if (current instanceof RealmCallback) {
 						RealmCallback rcb = (RealmCallback) current;
-						rcb.setText(rcb.getDefaultText());
+						String securityRealmName = rcb.getDefaultText();
+						if (securityRealmName != null && !securityRealmName.isEmpty()) {
+							securityRealmName = securityRealmNameFinal;
+						}
+						rcb.setText(securityRealmName);
 					} else {
 						throw new UnsupportedCallbackException(current);
 					}
