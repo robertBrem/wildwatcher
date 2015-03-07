@@ -29,7 +29,13 @@ public class MonitoringService {
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
 
-	public ModelControllerClient createClient(InetAddress host, int port, String username, String password, final String securityRealmName) {
+	public ModelControllerClient createClient(String ip, String port, String username, String password, String securityRealmName) {
+		InetAddress ipAddress = getIp(ip);
+		int parsedPort = Integer.parseInt(port);
+		return createClient(ipAddress, parsedPort, username, password, securityRealmName);
+	}
+
+	public ModelControllerClient createClient(InetAddress ip, int port, String username, String password, final String securityRealmName) {
 		if (username == null || username.isEmpty()) {
 			username = MonitoringService.DEFAULT_USERNAME;
 		}
@@ -61,10 +67,10 @@ public class MonitoringService {
 			}
 		};
 
-		return ModelControllerClient.Factory.create(host, port, callbackHandler);
+		return ModelControllerClient.Factory.create(ip, port, callbackHandler);
 	}
 
-	public InetAddress getHost(String ip) {
+	public InetAddress getIp(String ip) {
 		String[] ipParts = ip.split("\\.");
 		if (ipParts.length != IP_PARTS) {
 			throw new IllegalArgumentException(ip + " is not a valid ip address");

@@ -1,7 +1,5 @@
 package ch.wildwatcher.boundary;
 
-import java.net.InetAddress;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,14 +29,11 @@ public class MonitorEndpoint {
 	@Path("{ip}:{port}")
 	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
-		InetAddress host = service.getHost(ip);
-		int parsedPort = Integer.parseInt(port);
-
 		ModelNode serverState = new ModelNode();
 		serverState.get("operation").set("read-attribute");
 		serverState.get("name").set("server-state");
 
-		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
+		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
 		String serverStateResult = service.getResult(serverState, client);
 		return "Server is: " + serverStateResult;
 	}
@@ -54,16 +49,13 @@ public class MonitorEndpoint {
 	@Path("{ip}:{port}/deployments/{warFile}")
 	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
 			@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
-		InetAddress host = service.getHost(ip);
-		int parsedPort = Integer.parseInt(port);
-
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", warFile);
 		final ModelNode op = Operations.createReadResourceOperation(deploymentStatus, true);
 		op.get("operation").set("read-attribute");
 		op.get("name").set("status");
 
-		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
+		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
 		String deploymentStatusResult = service.getResult(op, client);
 
 		return "Deployment is: " + deploymentStatusResult;
