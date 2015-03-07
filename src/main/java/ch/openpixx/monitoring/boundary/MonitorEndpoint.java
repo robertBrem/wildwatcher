@@ -56,12 +56,20 @@ public class MonitorEndpoint {
 
 	@GET
 	@Path("{ip}:{port}/deployments/{warFile}")
-	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile) {
+	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
+			@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		InetAddress host = service.getHost(ip);
 		int parsedPort = Integer.parseInt(port);
-		String username = "admin";
-		String password = "admin";
-		String securityRealmName = "ManagementRealm";
+
+		if (username == null || username.isEmpty()) {
+			username = MonitoringService.DEFAULT_USERNAME;
+		}
+		if (password == null || password.isEmpty()) {
+			password = MonitoringService.DEFAULT_PASSWORD;
+		}
+		if (securityRealmName == null || securityRealmName.isEmpty()) {
+			securityRealmName = MonitoringService.DEFAULT_REALM;
+		}
 
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", warFile);
