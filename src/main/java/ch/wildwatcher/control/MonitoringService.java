@@ -77,7 +77,11 @@ public class MonitoringService {
 		byte[] ipAddress = new byte[4];
 		int index = 0;
 		for (String ipString : ipParts) {
-			ipAddress[index++] = ((Integer) Integer.parseInt(ipString)).byteValue();
+			Integer intValue = (Integer) Integer.parseInt(ipString);
+			if (intValue < 0 || intValue > 255) {
+				throw new IllegalArgumentException(intValue + " is out of range!");
+			}
+			ipAddress[index++] = intValue.byteValue();
 		}
 		return ipAddress;
 	}

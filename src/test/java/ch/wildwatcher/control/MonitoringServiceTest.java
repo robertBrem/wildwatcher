@@ -22,4 +22,24 @@ public class MonitoringServiceTest {
 		byte[] expected = new byte[] { 10, 12, 13, 14 };
 		assertArrayEquals(expected, ipAddress.getAddress());
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void should_throw_an_exception_because_one_part_is_too_big() {
+		service.getHost("266.12.13.14");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void should_throw_an_exception_because_one_part_is_negative() {
+		service.getHost("-15.12.13.14");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void should_throw_an_exception_because_there_are_too_less_parts() {
+		service.getHost("15.12.13");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void should_throw_an_exception_because_this_is_no_ip() {
+		service.getHost("helloWorld");
+	}
 }
