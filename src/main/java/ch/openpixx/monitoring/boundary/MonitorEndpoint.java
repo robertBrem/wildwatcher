@@ -13,14 +13,14 @@ import org.jboss.dmr.ModelNode;
 
 import ch.openpixx.monitoring.control.MonitoringService;
 
-@Path("wildwatcher")
+@Path("servers")
 public class MonitorEndpoint {
 
 	@Inject
 	MonitoringService service;
 
 	@GET
-	@Path("servers/{ip}:{port}")
+	@Path("{ip}:{port}")
 	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port) {
 		InetAddress host = service.getHost(ip);
 		int parsedPort = Integer.parseInt(port);
@@ -38,7 +38,7 @@ public class MonitorEndpoint {
 	}
 
 	@GET
-	@Path("servers/{ip}:{port}/deployments/{warFile}")
+	@Path("{ip}:{port}/deployments/{warFile}")
 	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile) {
 		InetAddress host = service.getHost(ip);
 		int parsedPort = Integer.parseInt(port);
