@@ -1,5 +1,10 @@
 package ch.wildwatcher.boundary;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,22 +25,50 @@ public class MonitorEndpoint {
 
 	@GET
 	@Path("{ip}")
-	public String getServerStatus(@PathParam("ip") String ip, @QueryParam("username") String username, @QueryParam("password") String password,
+	public String getServerAttributes(@PathParam("ip") String ip, @QueryParam("username") String username, @QueryParam("password") String password,
 			@QueryParam("realm") String securityRealmName) {
-		return getServerStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, username, password, securityRealmName);
+		return getServerAttributes(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, username, password, securityRealmName);
 	}
 
 	@GET
 	@Path("{ip}:{port}")
-	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
+	public String getServerAttributes(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
-		ModelNode serverState = new ModelNode();
-		serverState.get("operation").set("read-attribute");
-		serverState.get("name").set("server-state");
 
 		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
-		String serverStateResult = service.getResult(serverState, client);
-		return "Server is: " + serverStateResult;
+
+		List<String> attributes = new ArrayList<>();
+		attributes.add("server-state");
+		attributes.add("launch-type");
+		attributes.add("management-major-version");
+		attributes.add("management-micro-version");
+		attributes.add("management-minor-version");
+		attributes.add("name");
+		attributes.add("namespaces");
+		attributes.add("process-type");
+		attributes.add("product-name");
+		attributes.add("product-version");
+		attributes.add("profile-name");
+		attributes.add("release-codename");
+		attributes.add("release-version");
+		attributes.add("running-mode");
+		attributes.add("schema-locations");
+
+		Map<String, String> results = new HashMap<>();
+		for (String attribute : attributes) {
+			results.put(attribute, service.readAttributeResult(attribute, client));
+		}
+		service.closeClient(client);
+
+		StringBuilder resultString = new StringBuilder();
+		for (String attribute : attributes) {
+			resultString.append(attribute);
+			resultString.append(" : ");
+			resultString.append(results.get(attribute));
+			resultString.append("<br />");
+		}
+
+		return resultString.toString();
 	}
 
 	@GET

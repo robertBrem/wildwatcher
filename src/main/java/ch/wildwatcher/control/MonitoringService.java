@@ -125,13 +125,18 @@ public class MonitoringService {
 		}
 	}
 
+	public String readAttributeResult(String attribute, ModelControllerClient client) {
+		ModelNode node = new ModelNode();
+		node.get("operation").set("read-attribute");
+		node.get("name").set(attribute);
+		return getResult(node, client);
+	}
+
 	public String getResult(ModelNode serverState, ModelControllerClient client) {
 		try {
 			return getResult(client, serverState);
 		} catch (Exception e) {
 			return e.getMessage();
-		} finally {
-			closeClient(client);
 		}
 	}
 
