@@ -1,6 +1,5 @@
 package ch.openpixx.monitoring.boundary;
 
-import java.io.IOException;
 import java.net.InetAddress;
 
 import javax.inject.Inject;
@@ -54,22 +53,7 @@ public class MonitorEndpoint {
 		op.get("name").set("status");
 
 		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
-		// String deploymentStatusResult = service.getResult(deploymentStatus,
-		// client);
-
-		String deploymentStatusResult = "";
-		try {
-			final ModelNode outcome = client.execute(op);
-			deploymentStatusResult = outcome.get("result").toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		try {
-			client.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		String deploymentStatusResult = service.getResult(op, client);
 
 		return "Deployment is: " + deploymentStatusResult;
 	}
