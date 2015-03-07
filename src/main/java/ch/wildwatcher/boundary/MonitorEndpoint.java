@@ -1,15 +1,19 @@
 package ch.wildwatcher.boundary;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
@@ -25,14 +29,16 @@ public class MonitorEndpoint {
 
 	@GET
 	@Path("{ip}")
-	public String getServerAttributes(@PathParam("ip") String ip, @QueryParam("username") String username, @QueryParam("password") String password,
-			@QueryParam("realm") String securityRealmName) {
+	@Produces(MediaType.APPLICATION_JSON)
+	public JsonArray getServerAttributes(@PathParam("ip") String ip, @QueryParam("username") String username,
+			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		return getServerAttributes(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, username, password, securityRealmName);
 	}
 
 	@GET
 	@Path("{ip}:{port}")
-	public String getServerAttributes(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
+	@Produces(MediaType.APPLICATION_JSON)
+	public JsonArray getServerAttributes(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 
 		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
@@ -54,33 +60,29 @@ public class MonitorEndpoint {
 		attributes.add("running-mode");
 		attributes.add("schema-locations");
 
-		Map<String, String> results = new HashMap<>();
-		for (String attribute : attributes) {
-			results.put(attribute, service.readAttributeResult(attribute, client));
-		}
+		JsonArrayBuilder builder = Json.createArrayBuilder();
+		attributes.stream().forEach(attribute -> {
+			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+			jsonObjBuilder.add(attribute, service.readAttributeResult(attribute, client));
+			builder.add(jsonObjBuilder.build());
+		});
 		service.closeClient(client);
 
-		StringBuilder resultString = new StringBuilder();
-		for (String attribute : attributes) {
-			resultString.append(attribute);
-			resultString.append(" : ");
-			resultString.append(results.get(attribute));
-			resultString.append("<br />");
-		}
-
-		return resultString.toString();
+		return builder.build();
 	}
 
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{ip}/deployments/{warFile}")
-	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("warFile") String warFile, @QueryParam("username") String username,
+	public JsonArray getDeploymentStatus(@PathParam("ip") String ip, @PathParam("warFile") String warFile, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		return getDeploymentStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, warFile, username, password, securityRealmName);
 	}
 
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{ip}:{port}/deployments/{warFile}")
-	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
+	public JsonArray getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
 			@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", warFile);
@@ -96,20 +98,14 @@ public class MonitorEndpoint {
 		attributes.add("runtime-name");
 		attributes.add("status");
 
-		Map<String, String> results = new HashMap<>();
-		for (String attribute : attributes) {
-			results.put(attribute, service.readAttributeResult(op, attribute, client));
-		}
+		JsonArrayBuilder builder = Json.createArrayBuilder();
+		attributes.stream().forEach(attribute -> {
+			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+			jsonObjBuilder.add(attribute, service.readAttributeResult(op, attribute, client));
+			builder.add(jsonObjBuilder.build());
+		});
 		service.closeClient(client);
 
-		StringBuilder resultString = new StringBuilder();
-		for (String attribute : attributes) {
-			resultString.append(attribute);
-			resultString.append(" : ");
-			resultString.append(results.get(attribute));
-			resultString.append("<br />");
-		}
-
-		return resultString.toString();
+		return builder.build();
 	}
 }
