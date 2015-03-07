@@ -15,21 +15,21 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.RealmCallback;
 
-import org.jboss.as.controller.client.MessageSeverity;
 import org.jboss.as.controller.client.ModelControllerClient;
-import org.jboss.as.controller.client.OperationMessageHandler;
 import org.jboss.dmr.ModelNode;
 import org.jboss.threads.AsyncFuture;
 
 @Stateless
 public class MonitoringService {
 
-	public static String DEFAULT_MANAGEMENT_PORT = "9990";
-	public static String DEFAULT_USERNAME = "admin";
-	public static String DEFAULT_PASSWORD = "admin";
+	private static final int IP_PARTS = 4;
+	private static final int DEFAULT_TIMEOUT = 60;
+
+	public static final String DEFAULT_MANAGEMENT_PORT = "9990";
+	public static final String DEFAULT_USERNAME = "admin";
+	public static final String DEFAULT_PASSWORD = "admin";
 
 	public ModelControllerClient createClient(InetAddress host, int port, String username, String password, final String securityRealmName) {
-
 		if (username == null || username.isEmpty()) {
 			username = MonitoringService.DEFAULT_USERNAME;
 		}
@@ -66,16 +66,23 @@ public class MonitoringService {
 
 	public InetAddress getHost(String ip) {
 		String[] ipParts = ip.split("\\.");
-		if (ipParts.length != 4) {
+		if (ipParts.length != IP_PARTS) {
 			throw new IllegalArgumentException(ip + " is not a valid ip address");
 		}
 
+		return getHost(toByteArray(ipParts));
+	}
+
+	private byte[] toByteArray(String[] ipParts) {
 		byte[] ipAddress = new byte[4];
 		int index = 0;
 		for (String ipString : ipParts) {
 			ipAddress[index++] = ((Integer) Integer.parseInt(ipString)).byteValue();
 		}
+		return ipAddress;
+	}
 
+	private InetAddress getHost(byte[] ipAddress) {
 		InetAddress host = null;
 		try {
 			host = InetAddress.getByAddress(ipAddress);
@@ -86,29 +93,25 @@ public class MonitoringService {
 	}
 
 	public String getResult(ModelControllerClient client, ModelNode serverState) {
-		String serverStateResult = "";
-		AsyncFuture<ModelNode> resultFuture = client.executeAsync(serverState, new OperationMessageHandler() {
-			@Override
-			public void handleReport(MessageSeverity severity, String message) {
-				System.out.println("severity: " + severity);
-				System.out.println("message: " + message);
-			}
-		});
+		AsyncFuture<ModelNode> resultFuture = client.executeAsync(serverState, (severity, message) -> System.out.println("message: " + message));
+		return getResult(resultFuture);
+	}
+
+	private String getResult(AsyncFuture<ModelNode> resultFuture) {
 		ModelNode returnVal;
 		try {
-			returnVal = resultFuture.get(60, TimeUnit.SECONDS);
+			returnVal = resultFuture.get(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return e.getMessage();
 		}
-		serverStateResult = returnVal.get("result").toString();
-		return serverStateResult;
+		return returnVal.get("result").toString();
 	}
 
 	public void closeClient(ModelControllerClient client) {
 		try {
 			client.close();
 		} catch (IOException e) {
-			throw new RuntimeException("Could not close client!");
+			throw new IllegalArgumentException("Could not close client!");
 		}
 	}
 
