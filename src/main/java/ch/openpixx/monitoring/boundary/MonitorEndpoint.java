@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
@@ -21,21 +22,28 @@ public class MonitorEndpoint {
 
 	@GET
 	@Path("{ip}")
-	public String getServerStatus(@PathParam("ip") String ip) {
-		return getServerStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT);
+	public String getServerStatus(@PathParam("ip") String ip, @QueryParam("username") String username, @QueryParam("password") String password,
+			@QueryParam("realm") String securityRealmName) {
+		return getServerStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, username, password, securityRealmName);
 	}
 
 	@GET
 	@Path("{ip}:{port}")
-	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port) {
+	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
+			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
+
 		InetAddress host = service.getHost(ip);
-		int parsedPort = 9990;
-		if (port != null && !port.isEmpty()) {
-			parsedPort = Integer.parseInt(port);
+		int parsedPort = Integer.parseInt(port);
+
+		if (username == null || username.isEmpty()) {
+			username = MonitoringService.DEFAULT_USERNAME;
 		}
-		String username = "admin";
-		String password = "admin";
-		String securityRealmName = "ManagementRealm";
+		if (password == null || password.isEmpty()) {
+			password = MonitoringService.DEFAULT_PASSWORD;
+		}
+		if (securityRealmName == null || securityRealmName.isEmpty()) {
+			securityRealmName = MonitoringService.DEFAULT_REALM;
+		}
 
 		ModelNode serverState = new ModelNode();
 		serverState.get("operation").set("read-attribute");

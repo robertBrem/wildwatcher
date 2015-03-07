@@ -25,6 +25,9 @@ import org.jboss.threads.AsyncFuture;
 public class MonitoringService {
 
 	public static String DEFAULT_MANAGEMENT_PORT = "9990";
+	public static String DEFAULT_USERNAME = "admin";
+	public static String DEFAULT_PASSWORD = "admin";
+	public static String DEFAULT_REALM = "ManagementRealm";
 
 	public ModelControllerClient createClient(final InetAddress host, final int port, final String username, final String password,
 			final String securityRealmName) {
