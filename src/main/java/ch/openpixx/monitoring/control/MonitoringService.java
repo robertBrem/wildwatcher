@@ -28,7 +28,7 @@ public class MonitoringService {
 	public static String DEFAULT_USERNAME = "admin";
 	public static String DEFAULT_PASSWORD = "admin";
 
-	public ModelControllerClient createClient(InetAddress host, int port, String username, String password, String securityRealmName) {
+	public ModelControllerClient createClient(InetAddress host, int port, String username, String password, final String securityRealmName) {
 
 		if (username == null || username.isEmpty()) {
 			username = MonitoringService.DEFAULT_USERNAME;
@@ -39,7 +39,6 @@ public class MonitoringService {
 
 		final String usernameFinal = username;
 		final String passwordFinal = password;
-		final String securityRealmNameFinal = securityRealmName;
 
 		final CallbackHandler callbackHandler = (callbacks) -> {
 			for (Callback current : callbacks) {
@@ -52,8 +51,8 @@ public class MonitoringService {
 				} else if (current instanceof RealmCallback) {
 					RealmCallback rcb = (RealmCallback) current;
 					String realmName = rcb.getDefaultText();
-					if (realmName != null && !realmName.isEmpty()) {
-						realmName = securityRealmNameFinal;
+					if (securityRealmName != null && !securityRealmName.isEmpty()) {
+						realmName = securityRealmName;
 					}
 					rcb.setText(realmName);
 				} else {
