@@ -85,12 +85,31 @@ public class MonitorEndpoint {
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", warFile);
 		final ModelNode op = Operations.createReadResourceOperation(deploymentStatus, true);
-		op.get("operation").set("read-attribute");
-		op.get("name").set("status");
 
 		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
-		String deploymentStatusResult = service.getResult(op, client);
 
-		return "Deployment is: " + deploymentStatusResult;
+		List<String> attributes = new ArrayList<>();
+		attributes.add("content");
+		attributes.add("enabled");
+		attributes.add("name");
+		attributes.add("persistent");
+		attributes.add("runtime-name");
+		attributes.add("status");
+
+		Map<String, String> results = new HashMap<>();
+		for (String attribute : attributes) {
+			results.put(attribute, service.readAttributeResult(op, attribute, client));
+		}
+		service.closeClient(client);
+
+		StringBuilder resultString = new StringBuilder();
+		for (String attribute : attributes) {
+			resultString.append(attribute);
+			resultString.append(" : ");
+			resultString.append(results.get(attribute));
+			resultString.append("<br />");
+		}
+
+		return resultString.toString();
 	}
 }

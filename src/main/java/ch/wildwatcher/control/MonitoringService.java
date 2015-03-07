@@ -114,7 +114,7 @@ public class MonitoringService {
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return e.getMessage();
 		}
-		return returnVal.get("result").toString();
+		return returnVal.get("result").toJSONString(false);
 	}
 
 	public void closeClient(ModelControllerClient client) {
@@ -125,11 +125,14 @@ public class MonitoringService {
 		}
 	}
 
-	public String readAttributeResult(String attribute, ModelControllerClient client) {
-		ModelNode node = new ModelNode();
+	public String readAttributeResult(ModelNode node, String attribute, ModelControllerClient client) {
 		node.get("operation").set("read-attribute");
 		node.get("name").set(attribute);
 		return getResult(node, client);
+	}
+
+	public String readAttributeResult(String attribute, ModelControllerClient client) {
+		return readAttributeResult(new ModelNode(), attribute, client);
 	}
 
 	public String getResult(ModelNode serverState, ModelControllerClient client) {
