@@ -1,4 +1,4 @@
-package ch.openpixx.monitoring.boundry;
+package ch.openpixx.monitoring.boundary;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -7,12 +7,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
-import javax.security.sasl.RealmCallback;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,34 +19,13 @@ import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.jboss.threads.AsyncFuture;
 
+import ch.openpixx.monitoring.control.MonitoringService;
+
 @Path("monitoring")
 public class MonitorEndpoint {
 
-	static ModelControllerClient createClient(final InetAddress host, final int port, final String username, final String password,
-			final String securityRealmName) {
-
-		final CallbackHandler callbackHandler = new CallbackHandler() {
-
-			public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-				for (Callback current : callbacks) {
-					if (current instanceof NameCallback) {
-						NameCallback ncb = (NameCallback) current;
-						ncb.setName(username);
-					} else if (current instanceof PasswordCallback) {
-						PasswordCallback pcb = (PasswordCallback) current;
-						pcb.setPassword(password.toCharArray());
-					} else if (current instanceof RealmCallback) {
-						RealmCallback rcb = (RealmCallback) current;
-						rcb.setText(rcb.getDefaultText());
-					} else {
-						throw new UnsupportedCallbackException(current);
-					}
-				}
-			}
-		};
-
-		return ModelControllerClient.Factory.create(host, port, callbackHandler);
-	}
+	@Inject
+	MonitoringService service;
 
 	@GET
 	@Path("servers/{ip}:{port}")
@@ -79,7 +53,7 @@ public class MonitorEndpoint {
 		String password = "admin";
 		String securityRealmName = "ManagementRealm";
 
-		ModelControllerClient client = createClient(host, parsedPort, username, password, securityRealmName);
+		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
 
 		ModelNode serverState = new ModelNode();
 		serverState.get("operation").set("read-attribute");
@@ -139,7 +113,7 @@ public class MonitorEndpoint {
 		String password = "admin";
 		String securityRealmName = "ManagementRealm";
 
-		ModelControllerClient client = createClient(host, port, username, password, securityRealmName);
+		ModelControllerClient client = service.createClient(host, port, username, password, securityRealmName);
 
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", "brandservice.war");
