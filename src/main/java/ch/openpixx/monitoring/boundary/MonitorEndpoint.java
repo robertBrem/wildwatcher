@@ -14,7 +14,7 @@ import org.jboss.dmr.ModelNode;
 
 import ch.openpixx.monitoring.control.MonitoringService;
 
-@Path("monitoring")
+@Path("wildwatcher")
 public class MonitorEndpoint {
 
 	@Inject
@@ -33,20 +33,8 @@ public class MonitorEndpoint {
 		serverState.get("operation").set("read-attribute");
 		serverState.get("name").set("server-state");
 
-		String serverStateResult = "";
 		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
-		try {
-			serverStateResult = service.getResult(client, serverState);
-		} catch (Exception e) {
-			return e.getMessage();
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				return e.getMessage();
-			}
-		}
-
+		String serverStateResult = service.getResult(serverState, client);
 		return "Server is: " + serverStateResult;
 	}
 
@@ -59,13 +47,15 @@ public class MonitorEndpoint {
 		String password = "admin";
 		String securityRealmName = "ManagementRealm";
 
-		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
-
 		ModelNode deploymentStatus = new ModelNode();
-		deploymentStatus.add("deployment", "brandservice.war");
+		deploymentStatus.add("deployment", warFile);
 		final ModelNode op = Operations.createReadResourceOperation(deploymentStatus, true);
 		op.get("operation").set("read-attribute");
 		op.get("name").set("status");
+
+		ModelControllerClient client = service.createClient(host, parsedPort, username, password, securityRealmName);
+		// String deploymentStatusResult = service.getResult(deploymentStatus,
+		// client);
 
 		String deploymentStatusResult = "";
 		try {

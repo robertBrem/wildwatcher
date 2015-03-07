@@ -90,4 +90,22 @@ public class MonitoringService {
 		return serverStateResult;
 	}
 
+	public void closeClient(ModelControllerClient client) {
+		try {
+			client.close();
+		} catch (IOException e) {
+			throw new RuntimeException("Could not close client!");
+		}
+	}
+
+	public String getResult(ModelNode serverState, ModelControllerClient client) {
+		try {
+			return getResult(client, serverState);
+		} catch (Exception e) {
+			return e.getMessage();
+		} finally {
+			closeClient(client);
+		}
+	}
+
 }
