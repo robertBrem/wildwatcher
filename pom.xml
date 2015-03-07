@@ -17,7 +17,12 @@
 			<artifactId>wildfly-controller-client</artifactId>
 			<version>8.2.0.Final</version>
 		</dependency>
-
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>wildwatcher</finalName>

@@ -1,4 +1,4 @@
-package ch.wildwatcher.monitoring.control;
+package ch.wildwatcher.control;
 
 import java.io.IOException;
 import java.net.InetAddress;

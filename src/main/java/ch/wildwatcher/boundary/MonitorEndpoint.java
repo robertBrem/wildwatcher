@@ -1,4 +1,4 @@
-package ch.wildwatcher.monitoring.boundary;
+package ch.wildwatcher.boundary;
 
 import java.net.InetAddress;
 
@@ -12,7 +12,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 
-import ch.wildwatcher.monitoring.control.MonitoringService;
+import ch.wildwatcher.control.MonitoringService;
 
 @Path("servers")
 public class MonitorEndpoint {
