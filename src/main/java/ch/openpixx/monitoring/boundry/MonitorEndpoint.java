@@ -58,7 +58,6 @@ public class MonitorEndpoint {
 	public String getServerStatus(@PathParam("ip") String ip, @PathParam("port") String port) {
 
 		String[] ipParts = ip.split("\\.");
-
 		if (ipParts.length != 4) {
 			return ip + " is not a valid ip address";
 		}
