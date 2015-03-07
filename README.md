@@ -41,6 +41,6 @@ You also can set the following QueryParameters:
 - realm
 [http://localhost:8080/WildWatcher/resources/servers/10.10.10.10:9990/deployments/service.war?username=admin&password=admin&realm=ManagementRealm](http://localhost:8080/WildWatcher/resources/servers/10.10.10.10:9990/deployments/service.war?username=admin&password=admin&realm=ManagementRealm)
 
-[http://wildscribe.github.io/Wildfly/8.0.0.Final](Documentation for the attributes)
+[Documentation for the attributes](http://wildscribe.github.io/Wildfly/8.0.0.Final)
 
 
