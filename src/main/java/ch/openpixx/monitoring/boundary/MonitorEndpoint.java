@@ -55,6 +55,13 @@ public class MonitorEndpoint {
 	}
 
 	@GET
+	@Path("{ip}/deployments/{warFile}")
+	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("warFile") String warFile, @QueryParam("username") String username,
+			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
+		return getDeploymentStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, warFile, username, password, securityRealmName);
+	}
+
+	@GET
 	@Path("{ip}:{port}/deployments/{warFile}")
 	public String getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
 			@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
