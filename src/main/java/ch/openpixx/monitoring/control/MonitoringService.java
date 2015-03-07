@@ -41,26 +41,23 @@ public class MonitoringService {
 		final String passwordFinal = password;
 		final String securityRealmNameFinal = securityRealmName;
 
-		final CallbackHandler callbackHandler = new CallbackHandler() {
-
-			public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-				for (Callback current : callbacks) {
-					if (current instanceof NameCallback) {
-						NameCallback ncb = (NameCallback) current;
-						ncb.setName(usernameFinal);
-					} else if (current instanceof PasswordCallback) {
-						PasswordCallback pcb = (PasswordCallback) current;
-						pcb.setPassword(passwordFinal.toCharArray());
-					} else if (current instanceof RealmCallback) {
-						RealmCallback rcb = (RealmCallback) current;
-						String securityRealmName = rcb.getDefaultText();
-						if (securityRealmName != null && !securityRealmName.isEmpty()) {
-							securityRealmName = securityRealmNameFinal;
-						}
-						rcb.setText(securityRealmName);
-					} else {
-						throw new UnsupportedCallbackException(current);
+		final CallbackHandler callbackHandler = (callbacks) -> {
+			for (Callback current : callbacks) {
+				if (current instanceof NameCallback) {
+					NameCallback ncb = (NameCallback) current;
+					ncb.setName(usernameFinal);
+				} else if (current instanceof PasswordCallback) {
+					PasswordCallback pcb = (PasswordCallback) current;
+					pcb.setPassword(passwordFinal.toCharArray());
+				} else if (current instanceof RealmCallback) {
+					RealmCallback rcb = (RealmCallback) current;
+					String realmName = rcb.getDefaultText();
+					if (realmName != null && !realmName.isEmpty()) {
+						realmName = securityRealmNameFinal;
 					}
+					rcb.setText(realmName);
+				} else {
+					throw new UnsupportedCallbackException(current);
 				}
 			}
 		};
