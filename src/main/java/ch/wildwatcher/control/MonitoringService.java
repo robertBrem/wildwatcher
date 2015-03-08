@@ -114,7 +114,7 @@ public class MonitoringService {
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return e.getMessage();
 		}
-		return returnVal.get("result").toJSONString(false);
+		return returnVal.get("result").toJSONString(true);
 	}
 
 	public void closeClient(ModelControllerClient client) {
