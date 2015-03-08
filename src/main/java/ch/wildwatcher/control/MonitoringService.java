@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -23,29 +24,24 @@ import ch.wildwatcher.entity.Attribute;
 
 @Stateless
 public class MonitoringService {
-
-	private static final int IP_PARTS = 4;
 	private static final int DEFAULT_TIMEOUT = 60;
 
 	public static final String DEFAULT_MANAGEMENT_PORT = "9990";
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
 
+	@Inject
+	StringConverter stringConverter;
+
 	public ModelControllerClient createClient(String ipOrHostname, String port, String username, String password, String securityRealmName) {
 		int parsedPort = Integer.parseInt(port);
-
-		InetAddress ipAddress = null;
-		try {
-			ipAddress = getIp(ipOrHostname);
-		} catch (Exception e) {
-		}
+		InetAddress ipAddress = stringConverter.getIpAddress(ipOrHostname);
 
 		if (ipAddress == null) {
 			return createClient(ipOrHostname, parsedPort, username, password, securityRealmName);
 		} else {
 			return createClient(ipAddress, parsedPort, username, password, securityRealmName);
 		}
-
 	}
 
 	public ModelControllerClient createClient(InetAddress ip, int port, String username, String password, final String securityRealmName) {
@@ -93,38 +89,6 @@ public class MonitoringService {
 				}
 			}
 		};
-	}
-
-	public InetAddress getIp(String ip) {
-		String[] ipParts = ip.split("\\.");
-		if (ipParts.length != IP_PARTS) {
-			throw new IllegalArgumentException(ip + " is not a valid ip address");
-		}
-
-		return getIpAddress(toByteArray(ipParts));
-	}
-
-	private byte[] toByteArray(String[] ipParts) {
-		byte[] ipAddress = new byte[4];
-		int index = 0;
-		for (String ipString : ipParts) {
-			Integer intValue = (Integer) Integer.parseInt(ipString);
-			if (intValue < 0 || intValue > 255) {
-				throw new IllegalArgumentException(intValue + " is out of range!");
-			}
-			ipAddress[index++] = intValue.byteValue();
-		}
-		return ipAddress;
-	}
-
-	private InetAddress getIpAddress(byte[] ipAddress) {
-		InetAddress host = null;
-		try {
-			host = InetAddress.getByAddress(ipAddress);
-		} catch (UnknownHostException e) {
-			throw new IllegalArgumentException(ipAddress + " is not a correct ip address!");
-		}
-		return host;
 	}
 
 	public String getResult(ModelControllerClient client, ModelNode serverState) {

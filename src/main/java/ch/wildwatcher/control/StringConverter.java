@@ -1,9 +1,14 @@
 package ch.wildwatcher.control;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import javax.ejb.Stateless;
 
 @Stateless
 public class StringConverter {
+	public static final int IP_PARTS = 4;
+
 	public static final String FALSE = "false";
 	public static final String TRUE = "true";
 
@@ -12,32 +17,65 @@ public class StringConverter {
 	}
 
 	public Boolean getBoolean(String resultString) {
-		Boolean booleanResult = null;
 		if (resultString.trim().equalsIgnoreCase(TRUE) || resultString.trim().equalsIgnoreCase(FALSE)) {
 			try {
-				booleanResult = Boolean.parseBoolean(resultString);
+				return Boolean.parseBoolean(resultString);
 			} catch (Exception e) {
 			}
 		}
-		return booleanResult;
+		return null;
 	}
 
 	public Double getDouble(String resultString) {
-		Double doubleResult = null;
 		try {
-			doubleResult = Double.parseDouble(resultString);
+			return Double.parseDouble(resultString);
 		} catch (Exception e) {
 		}
-		return doubleResult;
+		return null;
 	}
 
 	public Integer getInt(String resultString) {
-		Integer integerResult = null;
 		try {
-			integerResult = Integer.parseInt(resultString);
+			return Integer.parseInt(resultString);
 		} catch (Exception e) {
 		}
-		return integerResult;
+		return null;
 	}
 
+	public InetAddress getIpAddress(String ipOrHostname) {
+		try {
+			return getIp(ipOrHostname);
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	public InetAddress getIp(String ip) {
+		String[] ipParts = ip.split("\\.");
+		if (ipParts.length != IP_PARTS) {
+			throw new IllegalArgumentException(ip + " is not a valid ip address");
+		}
+		return getIpAddress(toByteArray(ipParts));
+	}
+
+	public byte[] toByteArray(String[] ipParts) {
+		byte[] ipAddress = new byte[4];
+		int index = 0;
+		for (String ipString : ipParts) {
+			Integer intValue = (Integer) Integer.parseInt(ipString);
+			if (intValue < 0 || intValue > 255) {
+				throw new IllegalArgumentException(intValue + " is out of range!");
+			}
+			ipAddress[index++] = intValue.byteValue();
+		}
+		return ipAddress;
+	}
+
+	public InetAddress getIpAddress(byte[] ipAddress) {
+		try {
+			return InetAddress.getByAddress(ipAddress);
+		} catch (UnknownHostException e) {
+			throw new IllegalArgumentException(ipAddress + " is not a correct ip address!");
+		}
+	}
 }
