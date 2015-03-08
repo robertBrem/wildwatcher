@@ -1,23 +1,13 @@
 package ch.wildwatcher.control;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonStructure;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -29,6 +19,8 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.threads.AsyncFuture;
 
+import ch.wildwatcher.entity.Attribute;
+
 @Stateless
 public class MonitoringService {
 
@@ -38,9 +30,6 @@ public class MonitoringService {
 	public static final String DEFAULT_MANAGEMENT_PORT = "9990";
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
-
-	@Inject
-	StringConverter stringConverter;
 
 	public ModelControllerClient createClient(String ip, String port, String username, String password, String securityRealmName) {
 		InetAddress ipAddress = getIp(ip);
@@ -138,75 +127,22 @@ public class MonitoringService {
 		}
 	}
 
-	public String readAttributeResult(ModelNode node, String attribute, ModelControllerClient client) {
+	public Attribute readAttributeResult(ModelNode node, String attributeKey, ModelControllerClient client) {
 		node.get("operation").set("read-attribute");
-		node.get("name").set(attribute);
-		return getResult(node, client);
+		node.get("name").set(attributeKey);
+		return new Attribute(attributeKey, getResult(node, client));
 	}
 
-	public String readAttributeResult(String attribute, ModelControllerClient client) {
-		return readAttributeResult(new ModelNode(), attribute, client);
+	public Attribute readAttributeResult(String attributeKey, ModelControllerClient client) {
+		return readAttributeResult(new ModelNode(), attributeKey, client);
 	}
 
-	public String getResult(ModelNode serverState, ModelControllerClient client) {
+	public String getResult(ModelNode node, ModelControllerClient client) {
 		try {
-			return getResult(client, serverState);
+			return getResult(client, node);
 		} catch (Exception e) {
 			return e.getMessage();
 		}
-	}
-
-	public Consumer<? super String> toJSON(ModelControllerClient client, JsonArrayBuilder builder) {
-		return toJSON(new ModelNode(), client, builder);
-	}
-
-	public Consumer<? super String> toJSON(final ModelNode op, ModelControllerClient client, JsonArrayBuilder builder) {
-		return attribute -> {
-			String resultString = readAttributeResult(op, attribute, client);
-			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-
-			Integer integerResult = stringConverter.getInt(resultString);
-			Double doubleResult = stringConverter.getDouble(resultString);
-			Boolean booleanResult = stringConverter.getBoolean(resultString);
-
-			if (resultString.equals("null")) {
-				jsonObjBuilder.add(attribute, "null");
-			} else if (integerResult != null) {
-				jsonObjBuilder.add(attribute, integerResult);
-			} else if (doubleResult != null) {
-				jsonObjBuilder.add(attribute, doubleResult);
-			} else if (booleanResult != null) {
-				jsonObjBuilder.add(attribute, booleanResult);
-			} else {
-				addJsonStructure(attribute, resultString, jsonObjBuilder);
-			}
-			builder.add(jsonObjBuilder.build());
-		};
-	}
-
-	public void addJsonStructure(String attribute, String resultString, JsonObjectBuilder jsonObjBuilder) {
-		JsonStructure structure = getJsonStructure(resultString);
-		if (structure == null) {
-			if (resultString.startsWith("\"")) {
-				resultString = stringConverter.removeQuotes(resultString);
-				jsonObjBuilder.add(attribute, resultString);
-			}
-		} else {
-			jsonObjBuilder.add(attribute, structure);
-		}
-	}
-
-	public JsonStructure getJsonStructure(String resultString) {
-		InputStream stream = new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-		JsonReader jsonReader = Json.createReader(stream);
-		JsonStructure structure = null;
-		try {
-			structure = jsonReader.read();
-		} catch (Exception e) {
-		} finally {
-			jsonReader.close();
-		}
-		return structure;
 	}
 
 }

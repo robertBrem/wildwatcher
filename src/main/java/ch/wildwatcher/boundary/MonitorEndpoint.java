@@ -18,6 +18,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 
+import ch.wildwatcher.control.JsonConverter;
 import ch.wildwatcher.control.MonitoringService;
 
 @Path("servers")
@@ -25,6 +26,9 @@ public class MonitorEndpoint {
 
 	@Inject
 	MonitoringService service;
+
+	@Inject
+	JsonConverter jsonConverter;
 
 	@GET
 	@Path("{ip}")
@@ -60,7 +64,7 @@ public class MonitorEndpoint {
 		attributes.add("schema-locations");
 
 		JsonArrayBuilder builder = Json.createArrayBuilder();
-		attributes.stream().forEach(service.toJSON(client, builder));
+		attributes.stream().map(attribute -> service.readAttributeResult(attribute, client)).forEach(jsonConverter.toJSON(builder));
 		service.closeClient(client);
 
 		return builder.build();
@@ -94,9 +98,9 @@ public class MonitorEndpoint {
 		attributes.add("status");
 
 		JsonArrayBuilder builder = Json.createArrayBuilder();
-		attributes.stream().forEach(service.toJSON(op, client, builder));
-		service.closeClient(client);
+		attributes.stream().map(attributeKey -> service.readAttributeResult(op, attributeKey, client)).forEach(jsonConverter.toJSON(builder));
 
+		service.closeClient(client);
 		return builder.build();
 	}
 
