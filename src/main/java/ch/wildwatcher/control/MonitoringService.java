@@ -12,6 +12,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
@@ -37,6 +38,9 @@ public class MonitoringService {
 	public static final String DEFAULT_MANAGEMENT_PORT = "9990";
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
+
+	@Inject
+	StringConverter stringConverter;
 
 	public ModelControllerClient createClient(String ip, String port, String username, String password, String securityRealmName) {
 		InetAddress ipAddress = getIp(ip);
@@ -85,7 +89,7 @@ public class MonitoringService {
 			throw new IllegalArgumentException(ip + " is not a valid ip address");
 		}
 
-		return getHost(toByteArray(ipParts));
+		return getIpAddress(toByteArray(ipParts));
 	}
 
 	private byte[] toByteArray(String[] ipParts) {
@@ -101,7 +105,7 @@ public class MonitoringService {
 		return ipAddress;
 	}
 
-	private InetAddress getHost(byte[] ipAddress) {
+	private InetAddress getIpAddress(byte[] ipAddress) {
 		InetAddress host = null;
 		try {
 			host = InetAddress.getByAddress(ipAddress);
@@ -161,9 +165,9 @@ public class MonitoringService {
 			String resultString = readAttributeResult(op, attribute, client);
 			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
 
-			Integer integerResult = getInt(resultString);
-			Double doubleResult = getDouble(resultString);
-			Boolean booleanResult = getBoolean(resultString);
+			Integer integerResult = stringConverter.getInt(resultString);
+			Double doubleResult = stringConverter.getDouble(resultString);
+			Boolean booleanResult = stringConverter.getBoolean(resultString);
 
 			if (resultString.equals("null")) {
 				jsonObjBuilder.add(attribute, "null");
@@ -184,16 +188,12 @@ public class MonitoringService {
 		JsonStructure structure = getJsonStructure(resultString);
 		if (structure == null) {
 			if (resultString.startsWith("\"")) {
-				resultString = removeQuotes(resultString);
+				resultString = stringConverter.removeQuotes(resultString);
 				jsonObjBuilder.add(attribute, resultString);
 			}
 		} else {
 			jsonObjBuilder.add(attribute, structure);
 		}
-	}
-
-	public String removeQuotes(String resultString) {
-		return resultString.substring(1, resultString.length() - 1);
 	}
 
 	public JsonStructure getJsonStructure(String resultString) {
@@ -207,35 +207,6 @@ public class MonitoringService {
 			jsonReader.close();
 		}
 		return structure;
-	}
-
-	public Boolean getBoolean(String resultString) {
-		Boolean booleanResult = null;
-		if (resultString.trim().equalsIgnoreCase("true") || resultString.trim().equalsIgnoreCase("false")) {
-			try {
-				booleanResult = Boolean.parseBoolean(resultString);
-			} catch (Exception e) {
-			}
-		}
-		return booleanResult;
-	}
-
-	public Double getDouble(String resultString) {
-		Double doubleResult = null;
-		try {
-			doubleResult = Double.parseDouble(resultString);
-		} catch (Exception e) {
-		}
-		return doubleResult;
-	}
-
-	public Integer getInt(String resultString) {
-		Integer integerResult = null;
-		try {
-			integerResult = Integer.parseInt(resultString);
-		} catch (Exception e) {
-		}
-		return integerResult;
 	}
 
 }
