@@ -1,8 +1,5 @@
 package ch.wildwatcher.boundary;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +7,6 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonStructure;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -66,61 +60,7 @@ public class MonitorEndpoint {
 		attributes.add("schema-locations");
 
 		JsonArrayBuilder builder = Json.createArrayBuilder();
-		attributes.stream().forEach(attribute -> {
-			String resultString = service.readAttributeResult(attribute, client);
-			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-
-			Integer integerResult = null;
-			try {
-				integerResult = Integer.parseInt(resultString);
-			} catch (Exception e) {
-			}
-
-			Double doubleResult = null;
-			try {
-				doubleResult = Double.parseDouble(resultString);
-			} catch (Exception e) {
-			}
-
-			Boolean booleanResult = null;
-			if (resultString.trim().equalsIgnoreCase("true") || resultString.trim().equalsIgnoreCase("false"))
-				try {
-					booleanResult = Boolean.parseBoolean(resultString);
-				} catch (Exception e) {
-				}
-
-			if (resultString.equals("null")) {
-				jsonObjBuilder.add(attribute, "null");
-			} else if (integerResult != null) {
-				jsonObjBuilder.add(attribute, integerResult);
-			} else if (doubleResult != null) {
-				jsonObjBuilder.add(attribute, doubleResult);
-			} else if (booleanResult != null) {
-				jsonObjBuilder.add(attribute, booleanResult);
-			} else {
-
-				InputStream stream = new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-				JsonReader jsonReader = Json.createReader(stream);
-
-				JsonStructure object = null;
-				try {
-					object = jsonReader.read();
-				} catch (Exception e) {
-
-				}
-				jsonReader.close();
-
-				if (object == null) {
-					if (resultString.startsWith("\"")) {
-						resultString = resultString.substring(1, resultString.length() - 1);
-						jsonObjBuilder.add(attribute, resultString);
-					}
-				} else {
-					jsonObjBuilder.add(attribute, object);
-				}
-			}
-			builder.add(jsonObjBuilder.build());
-		});
+		attributes.stream().forEach(service.toJSON(client, builder));
 		service.closeClient(client);
 
 		return builder.build();
@@ -154,63 +94,10 @@ public class MonitorEndpoint {
 		attributes.add("status");
 
 		JsonArrayBuilder builder = Json.createArrayBuilder();
-		attributes.stream().forEach(attribute -> {
-			String resultString = service.readAttributeResult(op, attribute, client);
-			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-
-			Integer integerResult = null;
-			try {
-				integerResult = Integer.parseInt(resultString);
-			} catch (Exception e) {
-			}
-
-			Double doubleResult = null;
-			try {
-				doubleResult = Double.parseDouble(resultString);
-			} catch (Exception e) {
-			}
-
-			Boolean booleanResult = null;
-			if (resultString.trim().equalsIgnoreCase("true") || resultString.trim().equalsIgnoreCase("false"))
-				try {
-					booleanResult = Boolean.parseBoolean(resultString);
-				} catch (Exception e) {
-				}
-
-			if (resultString.equals("null")) {
-				jsonObjBuilder.add(attribute, "null");
-			} else if (integerResult != null) {
-				jsonObjBuilder.add(attribute, integerResult);
-			} else if (doubleResult != null) {
-				jsonObjBuilder.add(attribute, doubleResult);
-			} else if (booleanResult != null) {
-				jsonObjBuilder.add(attribute, booleanResult);
-			} else {
-
-				InputStream stream = new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-				JsonReader jsonReader = Json.createReader(stream);
-
-				JsonStructure object = null;
-				try {
-					object = jsonReader.read();
-				} catch (Exception e) {
-
-				}
-				jsonReader.close();
-
-				if (object == null) {
-					if (resultString.startsWith("\"")) {
-						resultString = resultString.substring(1, resultString.length() - 1);
-						jsonObjBuilder.add(attribute, resultString);
-					}
-				} else {
-					jsonObjBuilder.add(attribute, object);
-				}
-			}
-			builder.add(jsonObjBuilder.build());
-		});
+		attributes.stream().forEach(service.toJSON(op, client, builder));
 		service.closeClient(client);
 
 		return builder.build();
 	}
+
 }

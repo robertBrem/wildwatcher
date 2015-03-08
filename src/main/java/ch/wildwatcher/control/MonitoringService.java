@@ -1,13 +1,22 @@
 package ch.wildwatcher.control;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import javax.ejb.Stateless;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -141,6 +150,92 @@ public class MonitoringService {
 		} catch (Exception e) {
 			return e.getMessage();
 		}
+	}
+
+	public Consumer<? super String> toJSON(ModelControllerClient client, JsonArrayBuilder builder) {
+		return toJSON(new ModelNode(), client, builder);
+	}
+
+	public Consumer<? super String> toJSON(final ModelNode op, ModelControllerClient client, JsonArrayBuilder builder) {
+		return attribute -> {
+			String resultString = readAttributeResult(op, attribute, client);
+			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+
+			Integer integerResult = getInt(resultString);
+			Double doubleResult = getDouble(resultString);
+			Boolean booleanResult = getBoolean(resultString);
+
+			if (resultString.equals("null")) {
+				jsonObjBuilder.add(attribute, "null");
+			} else if (integerResult != null) {
+				jsonObjBuilder.add(attribute, integerResult);
+			} else if (doubleResult != null) {
+				jsonObjBuilder.add(attribute, doubleResult);
+			} else if (booleanResult != null) {
+				jsonObjBuilder.add(attribute, booleanResult);
+			} else {
+				addJsonStructure(attribute, resultString, jsonObjBuilder);
+			}
+			builder.add(jsonObjBuilder.build());
+		};
+	}
+
+	public void addJsonStructure(String attribute, String resultString, JsonObjectBuilder jsonObjBuilder) {
+		JsonStructure structure = getJsonStructure(resultString);
+		if (structure == null) {
+			if (resultString.startsWith("\"")) {
+				resultString = removeQuotes(resultString);
+				jsonObjBuilder.add(attribute, resultString);
+			}
+		} else {
+			jsonObjBuilder.add(attribute, structure);
+		}
+	}
+
+	public String removeQuotes(String resultString) {
+		return resultString.substring(1, resultString.length() - 1);
+	}
+
+	public JsonStructure getJsonStructure(String resultString) {
+		InputStream stream = new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
+		JsonReader jsonReader = Json.createReader(stream);
+		JsonStructure structure = null;
+		try {
+			structure = jsonReader.read();
+		} catch (Exception e) {
+		} finally {
+			jsonReader.close();
+		}
+		return structure;
+	}
+
+	public Boolean getBoolean(String resultString) {
+		Boolean booleanResult = null;
+		if (resultString.trim().equalsIgnoreCase("true") || resultString.trim().equalsIgnoreCase("false")) {
+			try {
+				booleanResult = Boolean.parseBoolean(resultString);
+			} catch (Exception e) {
+			}
+		}
+		return booleanResult;
+	}
+
+	public Double getDouble(String resultString) {
+		Double doubleResult = null;
+		try {
+			doubleResult = Double.parseDouble(resultString);
+		} catch (Exception e) {
+		}
+		return doubleResult;
+	}
+
+	public Integer getInt(String resultString) {
+		Integer integerResult = null;
+		try {
+			integerResult = Integer.parseInt(resultString);
+		} catch (Exception e) {
+		}
+		return integerResult;
 	}
 
 }
