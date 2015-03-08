@@ -31,13 +31,38 @@ public class MonitoringService {
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
 
-	public ModelControllerClient createClient(String ip, String port, String username, String password, String securityRealmName) {
-		InetAddress ipAddress = getIp(ip);
+	public ModelControllerClient createClient(String ipOrHostname, String port, String username, String password, String securityRealmName) {
 		int parsedPort = Integer.parseInt(port);
-		return createClient(ipAddress, parsedPort, username, password, securityRealmName);
+
+		InetAddress ipAddress = null;
+		try {
+			ipAddress = getIp(ipOrHostname);
+		} catch (Exception e) {
+		}
+
+		if (ipAddress == null) {
+			return createClient(ipOrHostname, parsedPort, username, password, securityRealmName);
+		} else {
+			return createClient(ipAddress, parsedPort, username, password, securityRealmName);
+		}
+
 	}
 
 	public ModelControllerClient createClient(InetAddress ip, int port, String username, String password, final String securityRealmName) {
+		final CallbackHandler callbackHandler = getClientCallbackHandler(username, password, securityRealmName);
+		return ModelControllerClient.Factory.create(ip, port, callbackHandler);
+	}
+
+	public ModelControllerClient createClient(String hostname, int port, String username, String password, final String securityRealmName) {
+		final CallbackHandler callbackHandler = getClientCallbackHandler(username, password, securityRealmName);
+		try {
+			return ModelControllerClient.Factory.create(hostname, port, callbackHandler);
+		} catch (UnknownHostException e) {
+			throw new IllegalArgumentException(hostname + " is not a correct hostname!");
+		}
+	}
+
+	public CallbackHandler getClientCallbackHandler(String username, String password, final String securityRealmName) {
 		if (username == null || username.isEmpty()) {
 			username = MonitoringService.DEFAULT_USERNAME;
 		}
@@ -48,7 +73,7 @@ public class MonitoringService {
 		final String usernameFinal = username;
 		final String passwordFinal = password;
 
-		final CallbackHandler callbackHandler = (callbacks) -> {
+		return callbacks -> {
 			for (Callback current : callbacks) {
 				if (current instanceof NameCallback) {
 					NameCallback ncb = (NameCallback) current;
@@ -68,8 +93,6 @@ public class MonitoringService {
 				}
 			}
 		};
-
-		return ModelControllerClient.Factory.create(ip, port, callbackHandler);
 	}
 
 	public InetAddress getIp(String ip) {
