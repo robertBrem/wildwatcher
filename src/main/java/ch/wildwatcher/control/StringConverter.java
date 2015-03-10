@@ -8,6 +8,9 @@ import javax.ejb.Stateless;
 @Stateless
 public class StringConverter {
 	public static final int IP_PARTS = 4;
+	public static final String POINT = "\\.";
+	public static final String QUOTE = "\"";
+	public static final String NULL_VALUE = "null";
 
 	public static final String FALSE = "false";
 	public static final String TRUE = "true";
@@ -59,7 +62,7 @@ public class StringConverter {
 	}
 
 	public InetAddress getIp(String ip) {
-		String[] ipParts = ip.split("\\.");
+		String[] ipParts = ip.split(POINT);
 		if (ipParts.length != IP_PARTS) {
 			throw new IllegalArgumentException(ip + " is not a valid ip address");
 		}

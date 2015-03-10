@@ -24,7 +24,7 @@ public class JsonConverter {
 	public void addJsonStructure(Attribute attribute, JsonObjectBuilder jsonObjBuilder) {
 		JsonStructure structure = getJsonStructure(attribute.getValue());
 		if (structure == null) {
-			if (attribute.getValue().startsWith("\"")) {
+			if (attribute.getValue().startsWith(StringConverter.QUOTE)) {
 				jsonObjBuilder.add(attribute.getKey(), stringConverter.removeQuotes(attribute.getValue()));
 			}
 		} else {
@@ -53,8 +53,8 @@ public class JsonConverter {
 			Double doubleResult = stringConverter.getDouble(attribute.getValue());
 			Boolean booleanResult = stringConverter.getBoolean(attribute.getValue());
 
-			if (attribute.getValue().equals("null")) {
-				jsonObjBuilder.add(attribute.getKey(), "null");
+			if (attribute.getValue().equals(StringConverter.NULL_VALUE)) {
+				jsonObjBuilder.add(attribute.getKey(), StringConverter.NULL_VALUE);
 			} else if (integerResult != null) {
 				jsonObjBuilder.add(attribute.getKey(), integerResult);
 			} else if (doubleResult != null) {

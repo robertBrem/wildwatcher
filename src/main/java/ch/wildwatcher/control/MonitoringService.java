@@ -30,6 +30,16 @@ public class MonitoringService {
 	public static final String DEFAULT_USERNAME = "admin";
 	public static final String DEFAULT_PASSWORD = "admin";
 
+	public static final class OPERATION_VALUE {
+		public static final String READ_ATTRIBUTE = "read-attribute";
+	}
+
+	public static final class NODE_NAME {
+		public static final String NAME = "name";
+		public static final String OPERATION = "operation";
+		public static final String RESULT = "result";
+	}
+
 	@Inject
 	StringConverter stringConverter;
 
@@ -103,7 +113,7 @@ public class MonitoringService {
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return e.getMessage();
 		}
-		return returnVal.get("result").toJSONString(true);
+		return returnVal.get(NODE_NAME.RESULT).toJSONString(true);
 	}
 
 	public void closeClient(ModelControllerClient client) {
@@ -115,8 +125,8 @@ public class MonitoringService {
 	}
 
 	public Attribute readAttributeResult(ModelNode node, String attributeKey, ModelControllerClient client) {
-		node.get("operation").set("read-attribute");
-		node.get("name").set(attributeKey);
+		node.get(NODE_NAME.OPERATION).set(OPERATION_VALUE.READ_ATTRIBUTE);
+		node.get(NODE_NAME.NAME).set(attributeKey);
 		return new Attribute(attributeKey, getResult(node, client));
 	}
 
