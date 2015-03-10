@@ -12,34 +12,42 @@ public class StringConverter {
 	public static final String FALSE = "false";
 	public static final String TRUE = "true";
 
-	public String removeQuotes(String resultString) {
-		return resultString.substring(1, resultString.length() - 1);
+	public String removeQuotes(String toUpdate) {
+		return toUpdate.substring(1, toUpdate.length() - 1);
 	}
 
-	public Boolean getBoolean(String resultString) {
-		if (resultString.trim().equalsIgnoreCase(TRUE) || resultString.trim().equalsIgnoreCase(FALSE)) {
+	public Boolean getBoolean(String toParse) {
+		String toParseTrimed = setUpForParsing(toParse);
+		if (toParseTrimed.equalsIgnoreCase(TRUE) || toParseTrimed.equalsIgnoreCase(FALSE)) {
 			try {
-				return Boolean.parseBoolean(resultString);
+				return Boolean.parseBoolean(toParseTrimed);
 			} catch (Exception e) {
 			}
 		}
 		return null;
 	}
 
-	public Double getDouble(String resultString) {
+	public Double getDouble(String toParse) {
+		String toParseTrimed = setUpForParsing(toParse);
 		try {
-			return Double.parseDouble(resultString);
+			return Double.parseDouble(toParseTrimed);
 		} catch (Exception e) {
 		}
 		return null;
 	}
 
-	public Integer getInt(String resultString) {
+	public Integer getInt(String toParse) {
+		String toParseTrimed = setUpForParsing(toParse);
 		try {
-			return Integer.parseInt(resultString);
+			return Integer.parseInt(toParse);
 		} catch (Exception e) {
 		}
 		return null;
+	}
+
+	private String setUpForParsing(String toParse) {
+		String toParseTrimed = toParse.trim();
+		return toParseTrimed;
 	}
 
 	public InetAddress getIpAddress(String ipOrHostname) {
