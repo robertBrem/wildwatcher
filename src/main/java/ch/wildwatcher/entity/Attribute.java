@@ -10,6 +10,6 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode(of = { "key" })
 public class Attribute {
-	private String key;
-	private String value;
+	private final String key;
+	private final String value;
 }

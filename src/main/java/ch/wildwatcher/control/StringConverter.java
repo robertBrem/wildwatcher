@@ -39,7 +39,7 @@ public class StringConverter {
 	public Integer getInt(String toParse) {
 		String toParseTrimed = setUpForParsing(toParse);
 		try {
-			return Integer.parseInt(toParse);
+			return Integer.parseInt(toParseTrimed);
 		} catch (Exception e) {
 		}
 		return null;

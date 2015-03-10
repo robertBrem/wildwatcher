@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class StringConverterTest {
+	public static final Double EPSILON = 0.00000001;
 
 	StringConverter converter;
 
@@ -69,7 +70,7 @@ public class StringConverterTest {
 	}
 
 	@Test
-	public void should_return_null() {
+	public void should_return_null_as_Boolean() {
 		Boolean actual = converter.getBoolean("richtig");
 		assertEquals(null, actual);
 	}
@@ -105,7 +106,7 @@ public class StringConverterTest {
 	}
 
 	@Test
-	public void should_return_null_() {
+	public void should_return_null_as_Boolean_() {
 		Boolean actual = converter.getBoolean("falsch");
 		assertEquals(null, actual);
 	}
@@ -113,6 +114,60 @@ public class StringConverterTest {
 	@Test
 	public void should_return_null_because_of_spaces_() {
 		Boolean actual = converter.getBoolean("f als e");
+		assertEquals(null, actual);
+	}
+
+	@Test
+	public void should_return_5_15_as_Double() {
+		Double actual = converter.getDouble("5.15");
+		assertEquals(5.15, actual, EPSILON);
+	}
+
+	@Test
+	public void should_return_null_as_Double() {
+		Double actual = converter.getDouble("5.eins5");
+		assertEquals(null, actual);
+	}
+
+	@Test
+	public void should_return_null_too_many_points_as_Double() {
+		Double actual = converter.getDouble("5.5.0");
+		assertEquals(null, actual);
+	}
+
+	@Test
+	public void should_return_5_0() {
+		Double actual = converter.getDouble("5");
+		assertEquals(5.0, actual, EPSILON);
+	}
+
+	@Test
+	public void should_return_4_25_with_whitespaces_as_Double() {
+		Double actual = converter.getDouble("   4.25		");
+		assertEquals(4.25, actual, EPSILON);
+	}
+
+	@Test
+	public void should_return_5_as_Integer() {
+		Integer actual = converter.getInt("5");
+		assertEquals(new Integer(5), actual);
+	}
+
+	@Test
+	public void should_return_null_as_Integer() {
+		Integer actual = converter.getInt("ein5");
+		assertEquals(null, actual);
+	}
+
+	@Test
+	public void should_return_4_with_whitespaces_as_Integer() {
+		Integer actual = converter.getInt("   4		");
+		assertEquals(new Integer(4), actual);
+	}
+
+	@Test
+	public void should_return_null_contains_point() {
+		Integer actual = converter.getInt("4.");
 		assertEquals(null, actual);
 	}
 }
