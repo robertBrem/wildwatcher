@@ -29,15 +29,16 @@ results in -->
 ```
 {
 	"content": [{
-		"path":"deployments/brandservice.war",
+		"path":"deployments/service.war",
 		"relative-to":"jboss.server.base.dir",
 		"archive":true
 	}],
 	"enabled":true,
-	"name":"brandservice.war",
+	"name":"service.war",
 	"persistent":false,
-	"runtime-name":"brandservice.war",
-	"status":"OK"}
+	"runtime-name":"service.war",
+	"status":"OK"
+}
 ```
 
 The port is optional.
