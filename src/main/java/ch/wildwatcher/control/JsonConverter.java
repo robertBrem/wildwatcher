@@ -8,10 +8,10 @@ import java.util.function.Consumer;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonStructure;
+import javax.json.JsonValue;
 
 import ch.wildwatcher.entity.Attribute;
 
@@ -45,26 +45,23 @@ public class JsonConverter {
 		return structure;
 	}
 
-	public Consumer<? super Attribute> toJSON(JsonArrayBuilder builder) {
+	public Consumer<? super Attribute> toJSON(JsonObjectBuilder builder) {
 		return attribute -> {
-			JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-
 			Integer integerResult = stringConverter.getInt(attribute.getValue());
 			Double doubleResult = stringConverter.getDouble(attribute.getValue());
 			Boolean booleanResult = stringConverter.getBoolean(attribute.getValue());
 
 			if (attribute.getValue().equals(StringConverter.NULL_VALUE)) {
-				jsonObjBuilder.add(attribute.getKey(), StringConverter.NULL_VALUE);
+				builder.add(attribute.getKey(), JsonValue.NULL);
 			} else if (integerResult != null) {
-				jsonObjBuilder.add(attribute.getKey(), integerResult);
+				builder.add(attribute.getKey(), integerResult);
 			} else if (doubleResult != null) {
-				jsonObjBuilder.add(attribute.getKey(), doubleResult);
+				builder.add(attribute.getKey(), doubleResult);
 			} else if (booleanResult != null) {
-				jsonObjBuilder.add(attribute.getKey(), booleanResult);
+				builder.add(attribute.getKey(), booleanResult);
 			} else {
-				addJsonStructure(attribute, jsonObjBuilder);
+				addJsonStructure(attribute, builder);
 			}
-			builder.add(jsonObjBuilder.build());
 		};
 	}
 

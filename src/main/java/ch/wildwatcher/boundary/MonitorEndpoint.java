@@ -5,8 +5,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -33,7 +33,7 @@ public class MonitorEndpoint {
 	@GET
 	@Path("{ip}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public JsonArray getServerAttributes(@PathParam("ip") String ip, @QueryParam("username") String username,
+	public JsonObject getServerAttributes(@PathParam("ip") String ip, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		return getServerAttributes(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, username, password, securityRealmName);
 	}
@@ -41,7 +41,7 @@ public class MonitorEndpoint {
 	@GET
 	@Path("{ip}:{port}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public JsonArray getServerAttributes(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
+	public JsonObject getServerAttributes(@PathParam("ip") String ip, @PathParam("port") String port, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 
 		ModelControllerClient client = service.createClient(ip, port, username, password, securityRealmName);
@@ -63,7 +63,7 @@ public class MonitorEndpoint {
 		attributes.add("running-mode");
 		attributes.add("schema-locations");
 
-		JsonArrayBuilder builder = Json.createArrayBuilder();
+		JsonObjectBuilder builder = Json.createObjectBuilder();
 		attributes.stream().map(attribute -> service.readAttributeResult(attribute, client)).forEach(jsonConverter.toJSON(builder));
 		service.closeClient(client);
 
@@ -73,7 +73,7 @@ public class MonitorEndpoint {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{ip}/deployments/{warFile}")
-	public JsonArray getDeploymentStatus(@PathParam("ip") String ip, @PathParam("warFile") String warFile, @QueryParam("username") String username,
+	public JsonObject getDeploymentStatus(@PathParam("ip") String ip, @PathParam("warFile") String warFile, @QueryParam("username") String username,
 			@QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		return getDeploymentStatus(ip, MonitoringService.DEFAULT_MANAGEMENT_PORT, warFile, username, password, securityRealmName);
 	}
@@ -81,7 +81,7 @@ public class MonitorEndpoint {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{ip}:{port}/deployments/{warFile}")
-	public JsonArray getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
+	public JsonObject getDeploymentStatus(@PathParam("ip") String ip, @PathParam("port") String port, @PathParam("warFile") String warFile,
 			@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("realm") String securityRealmName) {
 		ModelNode deploymentStatus = new ModelNode();
 		deploymentStatus.add("deployment", warFile);
@@ -97,7 +97,7 @@ public class MonitorEndpoint {
 		attributes.add("runtime-name");
 		attributes.add("status");
 
-		JsonArrayBuilder builder = Json.createArrayBuilder();
+		JsonObjectBuilder builder = Json.createObjectBuilder();
 		attributes.stream().map(attributeKey -> service.readAttributeResult(op, attributeKey, client)).forEach(jsonConverter.toJSON(builder));
 
 		service.closeClient(client);
